@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('histories', function (Blueprint $table) {
-            $table->integer('precio')->nullable(); // O usar el tipo de dato que necesites
-        });
+        
     }
 
     /**

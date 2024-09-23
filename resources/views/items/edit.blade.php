@@ -1,4 +1,3 @@
-<!-- resources/views/items/edit.blade.php -->
 @extends('layouts.app')
 
 @section('content')
@@ -18,6 +17,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     <div class="mb-3">
                         <label for="descripcion" class="form-label">Descripción</label>
                         <textarea class="form-control @error('descripcion') is-invalid @enderror" id="descripcion" name="descripcion" rows="3" required>{{ old('descripcion', $item->descripcion) }}</textarea>
@@ -25,6 +25,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     <div class="mb-3">
                         <label for="precio" class="form-label">Precio</label>
                         <input type="number" class="form-control @error('precio') is-invalid @enderror" id="precio" name="precio" value="{{ old('precio', $item->precio) }}" required>
@@ -32,12 +33,31 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     <div class="mb-3">
-                        <label for="images" class="form-label">Imágenes</label>
-                        <input type="file" class="form-control" id="images" name="images[]" multiple>
-                        <small class="form-text text-muted">Selecciona una o más imágenes.</small>
+                        <label for="currentImage" class="form-label">Imagen Actual</label>
+                        @if ($item->images->isNotEmpty())
+                            <div class="mb-2">
+                                <img src="{{ asset('storage/' . $item->images->first()->path) }}" alt="{{ $item->nombre }}" class="img-thumbnail" style="width: 200px;">
+                            </div>
+                            {{-- <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="removeImage" name="remove_image">
+                                <label for="removeImage" class="form-check-label">Eliminar imagen actual</label>
+                            </div> --}}
+                        @else
+                            <p>No hay imagen disponible.</p>
+                        @endif
                     </div>
-                    <button type="submit" class="btn btn-warning" title="Actualizar"><i class="fas fa-save" style="color: #ffffff;"></i> Actualizar Item</button>
+
+                    <div class="mb-3">
+                        <label for="images" class="form-label">Nueva Imagen (opcional)</label>
+                        <input type="file" class="form-control" id="images" name="images">
+                        <small class="form-text text-muted">Selecciona una nueva imagen si deseas reemplazar la actual.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning" title="Actualizar">
+                        <i class="fas fa-save" style="color: #ffffff;"></i> Actualizar Item
+                    </button>
                 </form>
             </div>
             <div class="card-footer">

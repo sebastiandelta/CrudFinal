@@ -19,7 +19,7 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h2 class="text-center">Bienvenidos</h2>
+        <h2 class="text-center">Bienvenido</h2>
         @yield('content') <!-- Esta sección se llenará con el contenido de las vistas -->
     </div>
 

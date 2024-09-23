@@ -3,8 +3,14 @@
 
 @section('content')
     <h3>Lista de Items</h3>
-    <a href="{{ route('items.create') }}" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> Nuevo Item</a>
-    <a href="{{ route('grafica.index') }}" class="btn btn-primary mb-3"><i class="fas fa-chart-bar"></i> Ver Estadísticas</a>
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{{ route('items.create') }}" class="btn btn-success btn-lg d-flex align-items-center">
+            <i class="fas fa-plus me-2"></i> Nuevo Item
+        </a>
+        <a href="{{ route('grafica.index') }}" class="btn btn-info btn-lg d-flex align-items-center">
+            <i class="fas fa-chart-bar me-2"></i> Ver Estadísticas
+        </a>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>

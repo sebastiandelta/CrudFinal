@@ -22,6 +22,6 @@ class Item extends Model
 
     public function history()
     {
-        return $this->hasMany(History::class); // Asegúrate de que History sea el modelo correcto
+        return $this->hasMany(History::class); 
     }
 }

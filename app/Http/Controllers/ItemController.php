@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Image;
 use App\Models\History;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -67,31 +68,97 @@ class ItemController extends Controller
     }
 
     public function update(Request $request, Item $item)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string',
-            'precio' => 'required|integer',
-            // Validación de imágenes
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'required|string',
+        'precio' => 'required|integer',
+        'images' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validación de la nueva imagen
+    ]);
+
+    // Guarda los valores antiguos para el historial
+    $oldName = $item->nombre;
+    $oldDescription = $item->descripcion;
+    $oldPrice = $item->precio;
+    $oldImagePath = $item->images->isNotEmpty() ? $item->images->first()->path : null; // Ruta de la imagen anterior
+
+    // Actualiza los campos de texto
+    $item->update($request->only(['nombre', 'descripcion', 'precio']));
+
+    // Variable para controlar si la imagen cambió
+    $imageChanged = false;
+
+    // Si se subió una nueva imagen
+    if ($request->hasFile('images')) {
+        // Elimina la imagen anterior si existía
+        if ($oldImagePath) {
+            Storage::delete('public/' . $oldImagePath);
+            $item->images()->delete(); // Elimina el registro de la base de datos
+        }
+
+        // Guarda la nueva imagen
+        $path = $request->file('images')->store('images', 'public');
+        $item->images()->create([
+            'path' => $path,
         ]);
+
+        $imageChanged = true; // Marca que la imagen fue cambiada
+    }
+
     
-        // Guarda los valores antiguos para el historial
-        $oldDescription = $item->descripcion;
-        $oldPrice = $item->precio;
-    
-        // Actualizar el item
-        $item->update($request->only(['nombre', 'descripcion', 'precio']));
-    
-        // Guardar en historial
+
+    if ($oldName !== $item->nombre) {
         History::create([
             'item_id' => $item->id,
-            'descripcion' => "Descripción cambiada de '{$oldDescription}' a '{$item->descripcion}'. Precio cambiado de '{$oldPrice}' a '{$item->precio}'.",
+            'descripcion' => "Nombre cambiado de '{$oldName}' a '{$item->nombre}'",
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    
-        return redirect()->route('items.index')->with('success', 'Item actualizado con éxito.');
     }
+
+    // Historial: Solo guardar si la descripción cambia
+    if ($oldDescription !== $item->descripcion) {
+        History::create([
+            'item_id' => $item->id,
+            'descripcion' => "Descripción cambiada de '{$oldDescription}' a '{$item->descripcion}'",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    // Historial: Solo guardar si el precio cambia
+    if ($oldPrice !== (int) $request->input('precio')) {
+        History::create([
+            'item_id' => $item->id,
+            'descripcion' => "Precio cambiado de '{$oldPrice}' a '{$item->precio}'",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    // Historial: Registrar si la imagen cambió
+    if ($imageChanged) {
+        History::create([
+            'item_id' => $item->id,
+            'descripcion' => "Imagen actualizada",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    // Si no se realizaron cambios en la descripción, precio o imagen 
+    if (!$imageChanged && $oldDescription === $item->descripcion && $oldPrice === $item->precio) {
+        History::create([
+            'item_id' => $item->id,
+            'descripcion' => "Ningún cambio realizado",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return redirect()->route('items.show', $item->id)->with('success', 'Item actualizado con éxito.');
+}
+
 
     public function destroy(Item $item)
     {
